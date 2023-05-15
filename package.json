@@ -40,6 +40,7 @@
     "morgan": "^1.10.0",
     "passport": "^0.6.0",
     "passport-google-oauth20": "^2.0.0",
+    "razorpay": "^2.8.6",
     "redis": "^4.6.6",
     "socket.io": "^4.6.1",
     "zod": "^3.21.4"
