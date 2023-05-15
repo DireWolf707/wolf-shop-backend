@@ -18,7 +18,8 @@
     "db-push": "prisma db push --schema src/schema.prisma",
     "db-gen": "prisma generate --schema src/schema.prisma",
     "db-migrate": "prisma migrate dev --schema src/schema.prisma",
-    "db-reset": "prisma migrate reset --schema src/schema.prisma -f && yarn db-push"
+    "db-reset": "prisma migrate reset --schema src/schema.prisma -f && yarn db-push",
+    "db-studio": "prisma studio --schema src/schema.prisma"
   },
   "devDependencies": {
     "cross-env": "^7.0.3",
