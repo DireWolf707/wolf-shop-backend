@@ -42,8 +42,9 @@ model Item {
   name        String      @db.VarChar(255)
   description String      @db.Text
   price       Int         @db.Integer
-  reviews     Review[]
+  thumbnail   String      @db.VarChar(255)
   images      ItemImage[]
+  reviews     Review[]
   orders      OrderItem[]
 }
 
