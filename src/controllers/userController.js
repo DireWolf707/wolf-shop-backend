@@ -2,7 +2,7 @@ import { catchAsync, slugify } from "../utils"
 import { prisma, storage } from "../configs"
 import { UserInput, ImageInput } from "../validators"
 import { sessionOptions } from "../middlewares/global"
-import { io } from "../socket"
+// import { io } from "../socket"
 
 export const getProfile = (req, res) => res.json({ data: req?.user || null })
 
@@ -51,10 +51,10 @@ export const deleteAvatar = catchAsync(async (req, res) => {
 })
 
 export const logout = (req, res) => {
-  const sessionId = req.session.id
+  // const sessionId = req.session.id
 
   req.session.destroy(() => {
-    io.in(sessionId).disconnectSockets()
+    // io.in(sessionId).disconnectSockets()
     res.clearCookie(sessionOptions.name)
     res.json({ data: null })
   })
