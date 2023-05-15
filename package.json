@@ -1,6 +1,47 @@
 {
   "name": "wolf-shop-backend",
+  "private": true,
   "version": "1.0.0",
   "main": "server.js",
-  "license": "MIT"
+  "author": "DireWolf",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": "16.15.1"
+  },
+  "scripts": {
+    "build": "yarn db-gen",
+    "start": "node --experimental-specifier-resolution=node src/server.js",
+    "dev": "cross-env NODE_ENV=development nodemon",
+    "prod": "cross-env NODE_ENV=production yarn start",
+    "db-init": "prisma init",
+    "db-push": "prisma db push --schema src/schema.prisma",
+    "db-gen": "prisma generate --schema src/schema.prisma",
+    "db-migrate": "prisma migrate dev --schema src/schema.prisma",
+    "db-reset": "prisma migrate reset --schema src/schema.prisma -f && yarn db-push"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3",
+    "nodemon": "^2.0.22",
+    "prisma": "^4.14.0"
+  },
+  "dependencies": {
+    "@google-cloud/storage": "^6.9.5",
+    "@prisma/client": "^4.14.0",
+    "@sindresorhus/slugify": "^2.2.0",
+    "compression": "^1.7.4",
+    "connect-redis": "^7.0.1",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-fileupload": "^1.4.0",
+    "express-session": "^1.17.3",
+    "helmet": "^7.0.0",
+    "morgan": "^1.10.0",
+    "passport": "^0.6.0",
+    "passport-google-oauth20": "^2.0.0",
+    "redis": "^4.6.6",
+    "socket.io": "^4.6.1",
+    "zod": "^3.21.4"
+  }
 }
