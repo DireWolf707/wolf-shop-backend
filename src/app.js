@@ -9,6 +9,8 @@ import { corsMiddleware, morganMiddleware, fileuploadMiddleware, sessionMiddlewa
 
 // Express app Init
 const app = express()
+// health check
+app.get("/", (req, res) => res.status(200).json("DireWolf!"))
 // Enable when runing behind a reverse proxy
 app.set("trust proxy", 1)
 // GLOBAL MIDDLEWARES
@@ -33,7 +35,6 @@ app.use(passport.initialize())
 app.use(passport.session())
 // Custom middlewares: app.use((req, res, next) => {next()})
 // Routes
-app.get("/", (req, res, next) => res.json("DireWolf!"))
 app.use("/user", userRouter)
 // 404 Handler
 app.all("*", (req, res, next) => next(new AppError(`Can't find ${req.originalUrl} on this server!`, 404)))
