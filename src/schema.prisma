@@ -69,5 +69,6 @@ model Review {
   item    Item   @relation(fields: [itemId], references: [id])
   itemId  String @db.Uuid
 
+  @@unique([userId, itemId])
   @@index([userId, itemId])
 }
