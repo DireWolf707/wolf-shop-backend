@@ -45,6 +45,7 @@ model Item {
   thumbnail   String      @db.VarChar(255)
   brand       String      @db.VarChar(255)
   category    String      @db.VarChar(255)
+  razorpayId  String      @db.VarChar(60)
   images      ItemImage[]
   reviews     Review[]
   orders      OrderItem[]
