@@ -1,6 +1,7 @@
 import { catchAsync } from "../utils"
-import { prisma, razorpay } from "../configs"
+import { prisma, razorpay, storage } from "../configs"
 import { validateWebhookSignature } from "razorpay/dist/utils/razorpay-utils"
+import { genInvoice } from "../utils"
 
 export const getItemList = catchAsync(async (req, res) => {
   const items = await prisma.item.findMany()
@@ -25,7 +26,8 @@ export const checkout = catchAsync(async (req, res) => {
   const itemIds = cart.map((item) => item.id)
   const items = await prisma.item.findMany({ where: { id: { in: itemIds } } })
 
-  const orderItems = items.map(({ id, price }) => ({
+  const orderItems = items.map(({ id, price, name }) => ({
+    name,
     price,
     itemId: id,
     quantity: cart.find((item) => item.id === id).qty,
@@ -52,14 +54,25 @@ export const orderWebhook = catchAsync(async (req, res) => {
   const { id: razorpayOrderId } = req.body.payload.order.entity
   const { id: razorpayPaymentId } = req.body.payload.payment.entity
 
-  const order = await prisma.order.update({
+  const order = await prisma.order.findUnique({
     where: { razorpayOrderId },
-    data: { razorpayPaymentId },
     include: { orderItems: true, user: true },
   })
 
-  // create invoice
-  // const items = order.orderItems.map(({ razorpayItemId, quantity }) => ({ item_id: razorpayItemId, quantity }))
+  const products = order.orderItems.map(({ name: description, price, quantity }) => ({ description, price, quantity, "tax-rate": 0 }))
+  const user = order.user
+  const invoice = genInvoice({ user, products })
+
+  const filename = `invoices/${razorpayPaymentId}.pdf`
+  const file = storage.file(filename)
+  await file.save(Buffer.from(invoice, "base64"))
+  await file.makePublic()
+
+  await prisma.order.update({
+    where: { razorpayOrderId },
+    data: { razorpayPaymentId, invoice: file.publicUrl() },
+    include: { orderItems: true, user: true },
+  })
 
   res.end()
 })
