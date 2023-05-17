@@ -1,5 +1,6 @@
 import { catchAsync } from "../utils"
 import { prisma, razorpay } from "../configs"
+import { validateWebhookSignature } from "razorpay/dist/utils/razorpay-utils"
 
 export const getItemList = catchAsync(async (req, res) => {
   const items = await prisma.item.findMany()
@@ -14,30 +15,20 @@ export const getItemDetail = catchAsync(async (req, res) => {
     where: { id: itemId },
     include: { images: true, reviews: true },
   })
-  let userReview = null
-  if (req.user) userReview = await prisma.review.findUnique({ where: { userId_itemId: { userId: req.user.id, itemId } } })
-  const reviewsMetadata = await prisma.review.aggregate({
-    where: { itemId },
-    _avg: { rating: true },
-    _count: { rating: true },
-  })
-  const relatedItems = await prisma.item.findMany({
-    where: { id: { not: { equals: itemId }, category: item.category } },
-  })
 
-  res.json({ data: { ...item, relatedItems, reviewsMetadata, userReview } })
+  res.json({ data: item })
 })
 
 export const checkout = catchAsync(async (req, res) => {
-  const { items } = req.body
+  const { cart } = req.body
 
-  const itemIds = items.map((item) => item.id)
-  const _items = await prisma.item.findMany({ where: { id: { in: itemIds } } })
+  const itemIds = cart.map((item) => item.id)
+  const items = await prisma.item.findMany({ where: { id: { in: itemIds } } })
 
-  const orderItems = items.map(({ id, qty }) => ({
+  const orderItems = items.map(({ id, price }) => ({
+    price,
     itemId: id,
-    quantity: qty,
-    price: _items.find((item) => item.id === id).price,
+    quantity: cart.find((item) => item.id === id).qty,
   }))
 
   const amount = orderItems.reduce((acc, item) => acc + item.quantity * item.price, 0) * 100
@@ -47,9 +38,28 @@ export const checkout = catchAsync(async (req, res) => {
     data: {
       userId: req.user.id,
       razorpayOrderId,
-      items: { createMany: { data: orderItems } },
+      orderItems: { createMany: { data: orderItems } },
     },
   })
 
-  res.json({ data: { orderId: razorpayOrderId, customerId: req.user.customerId } })
+  res.json({ data: { orderId: razorpayOrderId } })
+})
+
+export const orderWebhook = catchAsync(async (req, res) => {
+  const isValid = validateWebhookSignature(JSON.stringify(req.body), req.headers["x-razorpay-signature"], process.env.SECRET)
+  if (!isValid) return res.status(403).end()
+
+  const { id: razorpayOrderId } = req.body.payload.order.entity
+  const { id: razorpayPaymentId } = req.body.payload.payment.entity
+
+  const order = await prisma.order.update({
+    where: { razorpayOrderId },
+    data: { razorpayPaymentId },
+    include: { orderItems: true, user: true },
+  })
+
+  // create invoice
+  // const items = order.orderItems.map(({ razorpayItemId, quantity }) => ({ item_id: razorpayItemId, quantity }))
+
+  res.end()
 })
