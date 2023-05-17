@@ -1,7 +1,6 @@
 import passport from "passport"
 import { Strategy as GoogleStrategy } from "passport-google-oauth20"
 import prisma from "./prisma"
-import razorpay from "./razorpay"
 import { randomString, slugify } from "../utils"
 import { UserSignupInput } from "../validators"
 
@@ -20,8 +19,7 @@ passport.use(
         let user = await prisma.user.findUnique({ where: { email } })
         if (!user) {
           const data = UserSignupInput.parse({ email, name, username: slugify(`${name} ${randomString()}`) })
-          const { id: razorpayCustomerId } = await razorpay.customers.create({ name, email, fail_existing: 0 })
-          user = await prisma.user.create({ data: { ...data, razorpayCustomerId } })
+          user = await prisma.user.create({ data })
         }
         cb(null, user)
       } catch (err) {
