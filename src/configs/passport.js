@@ -20,8 +20,8 @@ passport.use(
         let user = await prisma.user.findUnique({ where: { email } })
         if (!user) {
           const data = UserSignupInput.parse({ email, name, username: slugify(`${name} ${randomString()}`) })
-          const { id: customerId } = await razorpay.customers.create({ name, email, fail_existing: 0 })
-          user = await prisma.user.create({ data: { ...data, customerId } })
+          const { id: razorpayCustomerId } = await razorpay.customers.create({ name, email, fail_existing: 0 })
+          user = await prisma.user.create({ data: { ...data, razorpayCustomerId } })
         }
         cb(null, user)
       } catch (err) {
