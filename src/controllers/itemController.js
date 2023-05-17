@@ -1,5 +1,5 @@
 import { catchAsync } from "../utils"
-import { prisma } from "../configs"
+import { prisma, razorpay } from "../configs"
 
 export const getItemList = catchAsync(async (req, res) => {
   const items = await prisma.item.findMany()
@@ -26,4 +26,30 @@ export const getItemDetail = catchAsync(async (req, res) => {
   })
 
   res.json({ data: { ...item, relatedItems, reviewsMetadata, userReview } })
+})
+
+export const checkout = catchAsync(async (req, res) => {
+  const { items } = req.body
+
+  const itemIds = items.map((item) => item.id)
+  const _items = await prisma.item.findMany({ where: { id: { in: itemIds } } })
+
+  const orderItems = items.map(({ id, qty }) => ({
+    itemId: id,
+    quantity: qty,
+    price: _items.find((item) => item.id === id).price,
+  }))
+
+  const amount = orderItems.reduce((acc, item) => acc + item.quantity * item.price, 0) * 100
+  const { id: razorpayOrderId } = await razorpay.orders.create({ amount, currency: "INR" })
+
+  await prisma.order.create({
+    data: {
+      userId: req.user.id,
+      razorpayOrderId,
+      items: { createMany: { data: orderItems } },
+    },
+  })
+
+  res.json({ data: { orderId: razorpayOrderId, customerId: req.user.customerId } })
 })
