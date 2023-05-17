@@ -26,7 +26,7 @@ export const fileuploadMiddleware = fileupload({
 
 export const sessionOptions = {
   name: "session",
-  secret: process.env.SESSION_SECRET,
+  secret: process.env.SECRET,
   resave: false,
   rolling: false,
   saveUninitialized: false,
