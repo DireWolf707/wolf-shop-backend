@@ -10,21 +10,21 @@ datasource db {
 }
 
 model User {
-  id         String   @id @default(uuid()) @db.Uuid
-  email      String   @unique
-  name       String   @db.VarChar(200)
-  username   String   @unique @db.VarChar(200)
-  customerId String   @db.VarChar(60)
-  avatar     String?
-  reviews    Review[]
-  orders     Order[]
+  id       String  @id @default(uuid()) @db.Uuid
+  email    String  @unique
+  name     String  @db.VarChar(200)
+  username String  @unique @db.VarChar(200)
+  avatar   String?
+  orders   Order[]
 }
 
 model Order {
-  id     String      @id @default(uuid()) @db.Uuid
-  user   User        @relation(fields: [userId], references: [id])
-  userId String      @db.Uuid
-  items  OrderItem[]
+  id                String      @id @default(uuid()) @db.Uuid
+  razorpayOrderId   String      @unique @db.VarChar(255)
+  razorpayPaymentId String?     @db.VarChar(255)
+  user              User        @relation(fields: [userId], references: [id])
+  userId            String      @db.Uuid
+  orderItems        OrderItem[]
 }
 
 model OrderItem {
@@ -42,15 +42,10 @@ model Item {
   name        String      @db.VarChar(255)
   description String      @db.Text
   price       Int         @db.Integer
-  thumbnail   String      @db.VarChar(255)
   brand       String      @db.VarChar(255)
-  category    String      @db.VarChar(255)
-  razorpayId  String      @db.VarChar(60)
+  thumbnail   String      @db.VarChar(255)
   images      ItemImage[]
-  reviews     Review[]
   orders      OrderItem[]
-
-  @@index([category])
 }
 
 model ItemImage {
@@ -58,17 +53,4 @@ model ItemImage {
   link   String @db.VarChar(255)
   item   Item   @relation(fields: [itemId], references: [id])
   itemId String @db.Uuid
-}
-
-model Review {
-  id      String @id @default(uuid()) @db.Uuid
-  rating  Float  @db.Real
-  comment String @db.VarChar(255)
-  user    User   @relation(fields: [userId], references: [id])
-  userId  String @db.Uuid
-  item    Item   @relation(fields: [itemId], references: [id])
-  itemId  String @db.Uuid
-
-  @@unique([userId, itemId])
-  @@index([userId, itemId])
 }
