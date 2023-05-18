@@ -1,5 +1,5 @@
-import { catchAsync, slugify } from "../utils"
-import { prisma, storage } from "../configs"
+import { catchAsync, slugify, storage } from "../utils"
+import { prisma } from "../configs"
 import { UserInput, ImageInput } from "../validators"
 import { sessionOptions } from "../middlewares/global"
 // import { io } from "../socket"
@@ -26,11 +26,9 @@ export const updateAvatar = catchAsync(async (req, res) => {
   const image = ImageInput(req?.files?.file)
   // upload new avatar (write/re-write)
   const filename = `avatars/${id}`
-  const file = storage.file(filename)
-  await file.save(image.data)
-  await file.makePublic()
+  const avatarURL = await storage.upload(filename, image.data)
   // update user and session (write)
-  if (!avatar) req.session.passport.user = await prisma.user.update({ data: { avatar: file.publicUrl() }, where: { id } })
+  if (!avatar) req.session.passport.user = await prisma.user.update({ data: { avatar: avatarURL }, where: { id } })
 
   res.json({ data: req.session.passport.user })
 })
@@ -41,8 +39,7 @@ export const deleteAvatar = catchAsync(async (req, res) => {
   if (avatar) {
     // remove avatar
     const filename = `avatars/${id}`
-    const file = storage.file(filename)
-    await file.delete({ ignoreNotFound: true })
+    await storage.delete(filename)
     // update user
     req.session.passport.user = await prisma.user.update({ data: { avatar: null }, where: { id } })
   }

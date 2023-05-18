@@ -11,16 +11,16 @@ export const setUpSocket = (httpServer) => {
     serveClient: false,
     cors: corsOptions,
   })
-  // io.use(socketMiddlewareWrapper(sessionMiddleware))
-  // io.use(socketMiddlewareWrapper(passport.initialize()))
-  // io.use(socketMiddlewareWrapper(passport.session()))
-  // io.use(socketMiddlewareWrapper(isAuthenticated))
+  io.use(socketMiddlewareWrapper(sessionMiddleware))
+  io.use(socketMiddlewareWrapper(passport.initialize()))
+  io.use(socketMiddlewareWrapper(passport.session()))
+  io.use(socketMiddlewareWrapper(isAuthenticated))
 
   io.on("connection", (socket) => {
     console.log(`new connection: ${socket.request.user.email}`)
-    // socket.join(socket.request.session.id) // for disconnecting while logging out
+    socket.join(socket.request.session.id) // for disconnecting while logging out
 
-    // socket.on("disconnecting", () => console.log("disconnecting"))
+    socket.on("disconnecting", () => console.log("disconnecting"))
     socket.on("disconnect", () => console.log("disconnected"))
   })
 
