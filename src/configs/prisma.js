@@ -11,6 +11,7 @@ try {
 } catch (err) {
   console.error("Error in PostgresDB Connection!")
   console.error(err.name, err.message)
+  console.error(err)
   process.exit(1)
 }
 
