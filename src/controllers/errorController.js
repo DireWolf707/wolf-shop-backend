@@ -27,7 +27,7 @@ export default (err, req, res, next) => {
   if (err.code === "P2023") err = handleCastErrorDB()
   if (err.code === "P2025") err = handleNotFoundErrorDB(err)
   // razorpay
-  if (err.error.step === "payment_initiation") err = handleRazorpayMaxAmountError()
+  if (err.error?.step === "payment_initiation") err = handleRazorpayMaxAmountError()
 
   console.log({ ...err, messsage: err.message })
 
