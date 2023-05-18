@@ -5,5 +5,6 @@ import randomString from "./randomString"
 import slugify from "./slugify"
 import getExtension from "./getExtension"
 import genInvoice from "./genInvoice"
+import storage from "./storage"
 
-export { AppError, catchAsync, getDirname, randomString, slugify, getExtension, genInvoice }
+export { AppError, catchAsync, getDirname, randomString, slugify, getExtension, genInvoice, storage }
