@@ -23,6 +23,8 @@ model Order {
   razorpayOrderId   String      @unique @db.VarChar(255)
   razorpayPaymentId String?     @db.VarChar(255)
   invoice           String?     @db.VarChar(255)
+  createdAt         DateTime    @default(now()) @db.Timestamptz()
+  amount            Int         @db.Integer
   user              User        @relation(fields: [userId], references: [id])
   userId            String      @db.Uuid
   orderItems        OrderItem[]

@@ -1,4 +1,4 @@
-import { catchAsync, storage } from "../utils"
+import { catchAsync } from "../utils"
 import { prisma, razorpay } from "../configs"
 import { validateWebhookSignature } from "razorpay/dist/utils/razorpay-utils"
 import { genInvoice } from "../utils"
@@ -23,6 +23,7 @@ export const getItemDetail = catchAsync(async (req, res) => {
 export const getOrders = catchAsync(async (req, res) => {
   const orders = await prisma.order.findMany({
     where: { userId: req.user.id, invoice: { not: null } },
+    orderBy: { createdAt: "desc" },
   })
 
   res.json({ data: orders })
@@ -41,13 +42,14 @@ export const checkout = catchAsync(async (req, res) => {
     quantity: cart.find((item) => item.id === id).qty,
   }))
 
-  const amount = orderItems.reduce((acc, item) => acc + item.quantity * item.price, 0) * 100
-  const { id: razorpayOrderId } = await razorpay.orders.create({ amount, currency: "INR" })
+  const amount = orderItems.reduce((acc, item) => acc + item.quantity * item.price, 0)
+  const { id: razorpayOrderId } = await razorpay.orders.create({ amount: amount * 100, currency: "INR" })
 
   await prisma.order.create({
     data: {
-      userId: req.user.id,
       razorpayOrderId,
+      amount,
+      userId: req.user.id,
       orderItems: { createMany: { data: orderItems } },
     },
   })
@@ -68,9 +70,7 @@ export const orderWebhook = catchAsync(async (req, res) => {
   })
 
   const products = order.orderItems.map(({ name: description, price, quantity }) => ({ description, price, quantity, "tax-rate": 0 }))
-  const user = order.user
-  const fileName = `invoices/${razorpayPaymentId}.pdf`
-  const invoiceURL = await genInvoice({ user, products, fileName })
+  const invoiceURL = await genInvoice({ products, razorpayOrderId, razorpayPaymentId, user: order.user })
 
   await prisma.order.update({
     where: { razorpayOrderId },

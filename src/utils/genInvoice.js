@@ -4,7 +4,7 @@ import path from "path"
 import getDirname from "./getDirname"
 import storage from "./storage"
 
-export default async ({ user, products, fileName }) => {
+export default async ({ user, products, razorpayOrderId, razorpayPaymentId }) => {
   const invoice = await easyinvoice.createInvoice({
     images: { logo: readFileSync(path.join(getDirname(import.meta.url), "../assets/invoice-logo.png"), "base64") },
     sender: { company: "Direwolf Corp", address: "wolf street", zip: "707 DW", city: "Delhi", country: "India" },
@@ -14,6 +14,7 @@ export default async ({ user, products, fileName }) => {
     products,
   })
 
+  const fileName = `invoices/${razorpayPaymentId}.pdf`
   const invoiceURL = await storage.upload(fileName, Buffer.from(invoice.pdf, "base64"))
   return invoiceURL
 }
