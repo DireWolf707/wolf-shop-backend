@@ -14,7 +14,7 @@ export const getItemDetail = catchAsync(async (req, res) => {
 
   const item = await prisma.item.findUniqueOrThrow({
     where: { id: itemId },
-    include: { images: true, reviews: true },
+    include: { images: true },
   })
 
   res.json({ data: item })

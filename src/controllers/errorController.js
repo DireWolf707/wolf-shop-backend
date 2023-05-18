@@ -2,7 +2,7 @@ import { AppError } from "../utils"
 
 const handlePayloadTooLargeError = () => new AppError("payload too large")
 const handleCastErrorDB = () => new AppError("invalid data")
-const handleNotFoundErrorDB = (err) => new AppError(err.meta.cause.replace(".",""))
+const handleNotFoundErrorDB = (err) => new AppError(err.meta.cause.replace(".", ""))
 const handleLongValueErrorDB = () => new AppError("data too long")
 const handleUniqueConstraintErrorDB = (err) => {
   const errors = err.meta.target.map((field) => `${field}:${field} is already in use`)
@@ -14,6 +14,7 @@ const handleValidationError = (err) => {
   const message = errors.join(",")
   return new AppError(message)
 }
+const handleRazorpayMaxAmountError = () => new AppError("order amount cannot exceed Rs. 5 lakhs")
 
 export default (err, req, res, next) => {
   // express errors
@@ -25,9 +26,11 @@ export default (err, req, res, next) => {
   if (err.code === "P2002") err = handleUniqueConstraintErrorDB(err)
   if (err.code === "P2023") err = handleCastErrorDB()
   if (err.code === "P2025") err = handleNotFoundErrorDB(err)
+  // razorpay
+  if (err.error.step === "payment_initiation") err = handleRazorpayMaxAmountError()
 
   console.log({ ...err, messsage: err.message })
-  
+
   // Operational error: send message to client
   if (err.isOperational)
     res.status(err.statusCode).json({
